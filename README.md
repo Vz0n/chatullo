@@ -20,6 +20,7 @@ Use `!` at the start of the message to wrote to the global chat. Don't start you
 - `chatullo.bypass` to bypass global chat requirements, false by default
 - `chatullo.global` to chat globally, true by default
 - `chatullo.local` to chat locally, true by default
+- `chatullo.format` to allow using Minecraft color and format codes in messages.
 
 ## Installation
 

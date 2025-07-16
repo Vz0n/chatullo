@@ -6,6 +6,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
@@ -15,6 +16,7 @@ import ua.mykolamurza.chatullo.configuration.Config;
 import ua.mykolamurza.chatullo.mention.AsciiTree;
 
 import java.util.List;
+import java.lang.Math;
 
 /**
  * @author Mykola Murza
@@ -35,9 +37,6 @@ public class ChatHandler {
         return instance;
     }
 
-    private static int square(int input) {
-        return input * input;
-    }
 
     public void updateTree() {
         tree = new AsciiTree(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
@@ -63,13 +62,18 @@ public class ChatHandler {
             case OTHER -> message;
         };
 
-        if (Chatullo.papi) {
-            return LEGACY.deserialize(PlaceholderAPI.setPlaceholders(player,
-                    formatted.replace("%player%", player.getName()).replace("%message%", message)));
-        } else {
-            return LEGACY.deserialize(
-                    formatted.replace("%player%", player.getName()).replace("%message%", message));
+        String rawIdent = Chatullo.papi ? PlaceholderAPI.setPlaceholders(player,
+                formatted.replace("%player%", player.getName())) : formatted.replace("%player%", player.getName());
+        TextComponent identPart = LEGACY.deserialize(rawIdent);
+        TextReplacementConfig.Builder configBuilder = TextReplacementConfig.builder().match("%message%");
+
+        if(player.hasPermission("chatullo.format")){
+            return (TextComponent) identPart.replaceText(
+                    configBuilder.replacement(LEGACY.deserialize(message)).build()
+            );
         }
+
+        return (TextComponent) identPart.replaceText(configBuilder.replacement(message).build());
     }
 
     public TextComponent formatMessage(String message) {
@@ -78,7 +82,7 @@ public class ChatHandler {
 
     private boolean isPlayerHearLocalChat(Player player, Player viewer) {
         return viewer.getWorld().equals(player.getWorld()) &&
-                viewer.getLocation().distanceSquared(player.getLocation()) <= square(Config.settings.getInt("radius"));
+                viewer.getLocation().distanceSquared(player.getLocation()) <= Math.pow(Config.settings.getInt("radius"), 2);
     }
 
     private String formatMentions(Player player, Audience recipient, String message) {

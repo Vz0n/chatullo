@@ -16,6 +16,9 @@ permissions:
   chatullo.global:
     description: Allows global chat.
     default: true
+  chatullo.format:
+    description: Allows using Minecraft color and formating in messages.
+    default: false
 commands:
   chatullo:
     description: Used to reload configuration
